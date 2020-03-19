@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:quiver/core.dart';
 
 enum WifiState { error, success, already }
 
@@ -58,4 +59,10 @@ class WifiResult {
   String bssid;
 
   WifiResult(this.ssid, this.level, this.bssid);
+
+  @override
+  bool operator ==(o) => o is WifiResult && ssid == o.ssid && bssid == o.bssid;
+
+  @override
+  int get hashCode => hash2(ssid, bssid);
 }

@@ -8,6 +8,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  quiver: any
+
 flutter:
   plugin:
     androidPackage: com.ly.wifi
