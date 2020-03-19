@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:quiver/core.dart';
 
@@ -27,7 +28,12 @@ class Wifi {
     var results = await _channel.invokeMethod('list', params);
     List<WifiResult> resultList = [];
     for (int i = 0; i < results.length; i++) {
-      resultList.add(WifiResult(results[i]['ssid'], results[i]['level'], results[i]['bssid']));
+      resultList.add(WifiResult(
+        ssid: results[i]['ssid'],
+        bssid: results[i]['bssid'],
+        level: results[i]['level'],
+        protected: results[i]['protected'],
+      ));
     }
     return resultList;
   }
@@ -54,15 +60,23 @@ class Wifi {
 }
 
 class WifiResult {
-  String ssid;
-  int level;
-  String bssid;
+  final String ssid;
+  final String bssid;
 
-  WifiResult(this.ssid, this.level, this.bssid);
+  final int level;
+  final bool protected;
+
+  WifiResult({
+    @required this.ssid,
+    @required this.bssid,
+
+    @required this.level,
+    @required this.protected,
+  });
 
   @override
-  bool operator ==(o) => o is WifiResult && ssid == o.ssid && bssid == o.bssid;
+  bool operator ==(o) => o is WifiResult && ssid == o.ssid && bssid == o.bssid && protected == o.protected;
 
   @override
-  int get hashCode => hash2(ssid, bssid);
+  int get hashCode => hash3(ssid, bssid, protected);
 }

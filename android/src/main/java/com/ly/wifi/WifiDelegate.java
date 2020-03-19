@@ -29,8 +29,16 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 
-public class
-WifiDelegate implements PluginRegistry.RequestPermissionsResultListener {
+public class WifiDelegate implements PluginRegistry.RequestPermissionsResultListener {
+    // Constants used for different security types
+    public static final String WPA2 = "WPA2";
+    public static final String WPA = "WPA";
+    public static final String WEP = "WEP";
+    public static final String OPEN = "Open";
+    /* For EAP Enterprise fields */
+    public static final String WPA_EAP = "WPA-EAP";
+    public static final String IEEE8021X = "IEEE8021X";
+
     private Activity activity;
     private WifiManager wifiManager;
     private PermissionManager permissionManager;
@@ -182,21 +190,13 @@ WifiDelegate implements PluginRegistry.RequestPermissionsResultListener {
         if (wifiManager != null) {
             List<ScanResult> scanResultList = wifiManager.getScanResults();
             for (ScanResult scanResult : scanResultList) {
-                int level;
-                if (scanResult.level <= 0 && scanResult.level >= -55) {
-                    level = 3;
-                } else if (scanResult.level < -55 && scanResult.level >= -80) {
-                    level = 2;
-                } else if (scanResult.level < -80 && scanResult.level >= -100) {
-                    level = 1;
-                } else {
-                    level = 0;
-                }
                 HashMap<String, Object> maps = new HashMap<>();
                 if (key.isEmpty() || scanResult.SSID.contains(key)) {
                     maps.put("ssid", scanResult.SSID);
-                    maps.put("level", level);
                     maps.put("bssid", scanResult.BSSID);
+                    maps.put("level", WifiManager.calculateSignalLevel(scanResult.level, 4));
+                    maps.put("protected", isProtected(scanResult));
+
                     list.add(maps);
                 }
             }
@@ -327,6 +327,19 @@ WifiDelegate implements PluginRegistry.RequestPermissionsResultListener {
     private void clearMethodCallAndResult() {
         methodCall = null;
         result = null;
+    }
+
+    private boolean isProtected(ScanResult scanResult) {
+        final String cap = scanResult.capabilities;
+        final String[] securityModes = { WEP, WPA, WPA2, WPA_EAP, IEEE8021X };
+
+        for (int i = securityModes.length - 1; i >= 0; i--) {
+            if (cap.contains(securityModes[i])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // support Android O
